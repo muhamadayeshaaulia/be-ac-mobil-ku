@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"be-ac-mobil-ku/delivery"
 	"be-ac-mobil-ku/middleware"
 	"be-ac-mobil-ku/repository"
+	"be-ac-mobil-ku/routes"
 	"be-ac-mobil-ku/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -66,23 +66,18 @@ func main() {
 		c.Next()
 	})
 
-	// 7. Health check API endpoint
-	r.GET("/api/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":      "success",
-			"message":     "Backend AC Mobil Ku siap digunakan!",
-			"environment": os.Getenv("APP_ENV"),
-			"database":    db.Name(),
-		})
-	})
-
 	// 8. Register Handlers (Delivery Layer)
-	delivery.NewUserHandler(r, userUC, verifyTokenFunc)
-	delivery.NewBengkelHandler(r, bengkelUC, verifyTokenFunc)
-	delivery.NewLayananHandler(r, layananUC, bengkelUC, verifyTokenFunc)
-	delivery.NewBookingHandler(r, bookingUC, verifyTokenFunc)
-	delivery.NewRatingHandler(r, ratingUC, verifyTokenFunc)
-	delivery.NewRecommendationHandler(r, recUC, verifyTokenFunc)
+	routes.SetupRoutes(routes.RouteConfig{
+		App:            r,
+		UserUC:         userUC,
+		BengkelUC:      bengkelUC,
+		LayananUC:      layananUC,
+		BookingUC:      bookingUC,
+		RatingUC:       ratingUC,
+		RecUC:          recUC,
+		AuthMiddleware: verifyTokenFunc,
+		DBName:         db.Name(),
+	})
 
 	// 9. Run server
 	port := os.Getenv("PORT")

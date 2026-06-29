@@ -12,16 +12,8 @@ type UserHandler struct {
 	userUsecase domain.UserUsecase
 }
 
-func NewUserHandler(r *gin.Engine, uu domain.UserUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &UserHandler{userUsecase: uu}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.GET("/user/profile", handler.GetProfile)
-		api.POST("/user/profile", handler.RegisterOrUpdate)
-		api.POST("/user/location", handler.UpdateLocation)
-	}
+func NewUserHandler(uu domain.UserUsecase) *UserHandler {
+	return &UserHandler{userUsecase: uu}
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {

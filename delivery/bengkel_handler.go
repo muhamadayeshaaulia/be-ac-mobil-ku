@@ -13,18 +13,8 @@ type BengkelHandler struct {
 	bengkelUsecase domain.BengkelUsecase
 }
 
-func NewBengkelHandler(r *gin.Engine, bu domain.BengkelUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &BengkelHandler{bengkelUsecase: bu}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.GET("/bengkel", handler.ListBengkel)
-		api.GET("/bengkel/detail/:id", handler.GetBengkelByID)
-		api.GET("/bengkel/my", handler.GetMyBengkel)
-		api.POST("/bengkel", handler.CreateBengkel)
-		api.PUT("/bengkel", handler.UpdateBengkel)
-	}
+func NewBengkelHandler(bu domain.BengkelUsecase) *BengkelHandler {
+	return &BengkelHandler{bengkelUsecase: bu}
 }
 
 func (h *BengkelHandler) ListBengkel(c *gin.Context) {

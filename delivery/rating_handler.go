@@ -13,15 +13,8 @@ type RatingHandler struct {
 	ratingUsecase domain.RatingUsecase
 }
 
-func NewRatingHandler(r *gin.Engine, ru domain.RatingUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &RatingHandler{ratingUsecase: ru}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.POST("/rating", handler.AddRating)
-		api.GET("/rating/bengkel/:bengkel_id", handler.GetRatings)
-	}
+func NewRatingHandler(ru domain.RatingUsecase) *RatingHandler {
+	return &RatingHandler{ratingUsecase: ru}
 }
 
 func (h *RatingHandler) AddRating(c *gin.Context) {

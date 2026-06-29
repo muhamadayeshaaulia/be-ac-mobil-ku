@@ -13,14 +13,8 @@ type RecommendationHandler struct {
 	recUsecase domain.RecommendationUsecase
 }
 
-func NewRecommendationHandler(r *gin.Engine, ru domain.RecommendationUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &RecommendationHandler{recUsecase: ru}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.GET("/recommendations", handler.GetRecommendations)
-	}
+func NewRecommendationHandler(ru domain.RecommendationUsecase) *RecommendationHandler {
+	return &RecommendationHandler{recUsecase: ru}
 }
 
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {

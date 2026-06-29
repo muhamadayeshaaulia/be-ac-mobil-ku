@@ -14,20 +14,10 @@ type LayananHandler struct {
 	bengkelUsecase domain.BengkelUsecase
 }
 
-func NewLayananHandler(r *gin.Engine, lu domain.LayananUsecase, bu domain.BengkelUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &LayananHandler{
+func NewLayananHandler(lu domain.LayananUsecase, bu domain.BengkelUsecase) *LayananHandler {
+	return &LayananHandler{
 		layananUsecase: lu,
 		bengkelUsecase: bu,
-	}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.GET("/layanan/bengkel/:bengkel_id", handler.GetLayananByBengkel)
-		api.GET("/layanan/detail/:id", handler.GetLayananByID)
-		api.POST("/layanan", handler.CreateLayanan)
-		api.PUT("/layanan/:id", handler.UpdateLayanan)
-		api.DELETE("/layanan/:id", handler.DeleteLayanan)
 	}
 }
 

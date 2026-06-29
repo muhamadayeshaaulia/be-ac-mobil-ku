@@ -14,17 +14,8 @@ type BookingHandler struct {
 	bookingUsecase domain.BookingUsecase
 }
 
-func NewBookingHandler(r *gin.Engine, bu domain.BookingUsecase, authMiddleware gin.HandlerFunc) {
-	handler := &BookingHandler{bookingUsecase: bu}
-
-	api := r.Group("/api")
-	api.Use(authMiddleware)
-	{
-		api.POST("/booking", handler.CreateBooking)
-		api.GET("/booking/history", handler.GetHistory)
-		api.GET("/booking/queue", handler.GetQueue)
-		api.PUT("/booking/:id/status", handler.UpdateStatus)
-	}
+func NewBookingHandler(bu domain.BookingUsecase) *BookingHandler {
+	return &BookingHandler{bookingUsecase: bu}
 }
 
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
