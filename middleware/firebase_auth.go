@@ -1,25 +1,51 @@
 package middleware
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"google.golang.org/api/option"
 )
 
 type AuthMiddleware struct {
-	JWTSecret []byte
+	AuthClient *auth.Client
 }
 
 func InitAuthMiddleware() *AuthMiddleware {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "ac_mobil_ku_secret_key_1234567890" // default fallback
+	serviceAccountPath := os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+	if serviceAccountPath == "" {
+		serviceAccountPath = "firebase-service-account.json"
 	}
-	return &AuthMiddleware{JWTSecret: []byte(secret)}
+
+	ctx := context.Background()
+	var app *firebase.App
+	var err error
+
+	if _, statErr := os.Stat(serviceAccountPath); statErr == nil {
+		opt := option.WithCredentialsFile(serviceAccountPath)
+		app, err = firebase.NewApp(ctx, nil, opt)
+		if err != nil {
+			log.Printf("error initializing Firebase app: %v", err)
+		}
+	} else {
+		log.Printf("Firebase service account file not found at %s. Running without Firebase verification (Dev mode only).", serviceAccountPath)
+	}
+
+	var authClient *auth.Client
+	if app != nil {
+		authClient, err = app.Auth(ctx)
+		if err != nil {
+			log.Printf("error getting Firebase Auth client: %v", err)
+		}
+	}
+
+	return &AuthMiddleware{AuthClient: authClient}
 }
 
 func (am *AuthMiddleware) VerifyToken() gin.HandlerFunc {
@@ -38,17 +64,17 @@ func (am *AuthMiddleware) VerifyToken() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := parts[1]
+		idToken := parts[1]
 
 		// Development Bypass Option
-		if os.Getenv("APP_ENV") == "development" {
-			// Mock tokens for easy offline testing
-			if strings.HasPrefix(tokenString, "dev-token-") {
+		if os.Getenv("APP_ENV") == "development" || am.AuthClient == nil {
+			// Mock tokens for easy testing
+			if strings.HasPrefix(idToken, "dev-token-") {
 				role := "pelanggan"
-				if strings.Contains(tokenString, "pengelola") {
+				if strings.Contains(idToken, "pengelola") {
 					role = "pengelola_bengkel"
 				}
-				uid := strings.TrimPrefix(tokenString, "dev-token-")
+				uid := strings.TrimPrefix(idToken, "dev-token-")
 				
 				c.Set("user_uid", uid)
 				c.Set("user_email", uid+"@example.com")
@@ -59,41 +85,35 @@ func (am *AuthMiddleware) VerifyToken() gin.HandlerFunc {
 			}
 		}
 
-		// Parse and validate custom JWT
-		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			return am.JWTSecret, nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired JWT token"})
+		if am.AuthClient == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Firebase authentication client not initialized"})
 			c.Abort()
 			return
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid JWT claims structure"})
+		// Verify ID Token via Firebase Admin SDK
+		token, err := am.AuthClient.VerifyIDToken(c.Request.Context(), idToken)
+		if err != nil {
+			log.Printf("Firebase Auth Token verification failed: %v", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired authorization token"})
 			c.Abort()
 			return
 		}
 
-		// Extract claims into context
-		uid, _ := claims["uid"].(string)
-		if uid == "" {
-			uid, _ = claims["sub"].(string) // fallback to standard subject claim
-		}
+		// Inject user context
+		c.Set("user_uid", token.UID)
 		
-		email, _ := claims["email"].(string)
-		name, _ := claims["name"].(string)
-		role, _ := claims["role"].(string)
-
-		c.Set("user_uid", uid)
+		email := ""
+		if val, ok := token.Claims["email"]; ok {
+			email = val.(string)
+		}
 		c.Set("user_email", email)
+
+		name := ""
+		if val, ok := token.Claims["name"]; ok {
+			name = val.(string)
+		}
 		c.Set("user_name", name)
-		c.Set("user_role", role)
 
 		c.Next()
 	}
