@@ -9,6 +9,7 @@ type Layanan struct {
 	Deskripsi     string  `gorm:"type:text" json:"deskripsi"`
 	EstimasiHarga float64 `gorm:"not null" json:"estimasi_harga"`
 	Status        string  `json:"status"` // "tersedia" atau "tidak_tersedia"
+	FotoURL       string  `gorm:"type:text" json:"foto_url"`
 }
 
 type LayananRepository interface {
