@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"be-ac-mobil-ku/middleware"
 	"be-ac-mobil-ku/repository"
@@ -64,6 +66,36 @@ func main() {
 			return
 		}
 		c.Next()
+	})
+
+	// Setup static assets serving for uploads folder
+	if _, err := os.Stat("uploads"); os.IsNotExist(err) {
+		_ = os.Mkdir("uploads", 0755)
+	}
+	r.Static("/uploads", "./uploads")
+
+	// REST API endpoint for uploading files locally
+	r.POST("/api/upload", func(c *gin.Context) {
+		file, err := c.FormFile("image")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No file uploaded"})
+			return
+		}
+
+		filename := fmt.Sprintf("%d-%s", time.Now().UnixNano(), file.Filename)
+		filepath := fmt.Sprintf("uploads/%s", filename)
+		if err := c.SaveUploadedFile(file, filepath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		host := c.Request.Host
+		fileURL := fmt.Sprintf("http://%s/uploads/%s", host, filename)
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"url":    fileURL,
+		})
 	})
 
 	// 8. Register Handlers (Delivery Layer)

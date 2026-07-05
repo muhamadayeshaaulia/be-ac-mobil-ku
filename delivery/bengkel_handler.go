@@ -99,6 +99,7 @@ func (h *BengkelHandler) UpdateBengkel(c *gin.Context) {
 	existing.JamTutup = input.JamTutup
 	existing.Telepon = input.Telepon
 	existing.Status = input.Status
+	existing.FotoURL = input.FotoURL
 
 	err = h.bengkelUsecase.UpdateBengkel(c.Request.Context(), existing)
 	if err != nil {

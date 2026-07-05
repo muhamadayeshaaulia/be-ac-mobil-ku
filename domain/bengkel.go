@@ -14,6 +14,7 @@ type Bengkel struct {
 	JamTutup             string  `json:"jam_tutup"` // e.g. "17:00"
 	Telepon              string  `json:"telepon"`
 	Status               string  `json:"status"` // "aktif" atau "nonaktif"
+	FotoURL              string  `json:"foto_url"`
 	Distance             float64 `gorm:"-" json:"distance,omitempty"`
 	AvgRatingKualitas    float64 `gorm:"-" json:"avg_rating_kualitas,omitempty"`
 	AvgRatingHarga       float64 `gorm:"-" json:"avg_rating_harga,omitempty"`
