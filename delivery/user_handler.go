@@ -2,6 +2,9 @@ package delivery
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"be-ac-mobil-ku/domain"
 
@@ -28,6 +31,20 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": profile})
 }
 
+func (h *UserHandler) deleteOldUploadedFile(oldURL string) {
+	if oldURL == "" {
+		return
+	}
+	if strings.Contains(oldURL, "/uploads/") {
+		parts := strings.Split(oldURL, "/uploads/")
+		if len(parts) > 1 {
+			filename := parts[len(parts)-1]
+			localPath := filepath.Join("uploads", filename)
+			_ = os.Remove(localPath)
+		}
+	}
+}
+
 func (h *UserHandler) RegisterOrUpdate(c *gin.Context) {
 	uid := c.MustGet("user_uid").(string)
 	email := c.MustGet("user_email").(string)
@@ -46,6 +63,13 @@ func (h *UserHandler) RegisterOrUpdate(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Clean up old photo if updated
+	if existingUser, err := h.userUsecase.GetProfile(c.Request.Context(), uid); err == nil && existingUser != nil {
+		if existingUser.FotoURL != req.FotoURL {
+			h.deleteOldUploadedFile(existingUser.FotoURL)
+		}
 	}
 
 	displayName := name

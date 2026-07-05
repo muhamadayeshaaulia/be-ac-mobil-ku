@@ -2,7 +2,10 @@ package delivery
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"be-ac-mobil-ku/domain"
 
@@ -75,6 +78,20 @@ func (h *BengkelHandler) CreateBengkel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": b})
 }
 
+func (h *BengkelHandler) deleteOldUploadedFile(oldURL string) {
+	if oldURL == "" {
+		return
+	}
+	if strings.Contains(oldURL, "/uploads/") {
+		parts := strings.Split(oldURL, "/uploads/")
+		if len(parts) > 1 {
+			filename := parts[len(parts)-1]
+			localPath := filepath.Join("uploads", filename)
+			_ = os.Remove(localPath)
+		}
+	}
+}
+
 func (h *BengkelHandler) UpdateBengkel(c *gin.Context) {
 	uid := c.MustGet("user_uid").(string)
 
@@ -88,6 +105,11 @@ func (h *BengkelHandler) UpdateBengkel(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Clean up old cover photo if updated
+	if existing.FotoURL != input.FotoURL {
+		h.deleteOldUploadedFile(existing.FotoURL)
 	}
 
 	existing.Nama = input.Nama

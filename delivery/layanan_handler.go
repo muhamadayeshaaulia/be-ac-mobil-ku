@@ -2,7 +2,10 @@ package delivery
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"be-ac-mobil-ku/domain"
 
@@ -80,6 +83,32 @@ func (h *LayananHandler) CreateLayanan(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": req})
 }
 
+func (h *LayananHandler) cleanUpOrphanedImages(oldCSV, newCSV string) {
+	if oldCSV == "" {
+		return
+	}
+	oldURLs := strings.Split(oldCSV, ",")
+	newURLsMap := make(map[string]bool)
+	if newCSV != "" {
+		for _, url := range strings.Split(newCSV, ",") {
+			newURLsMap[url] = true
+		}
+	}
+
+	for _, oldURL := range oldURLs {
+		if oldURL != "" && !newURLsMap[oldURL] {
+			if strings.Contains(oldURL, "/uploads/") {
+				parts := strings.Split(oldURL, "/uploads/")
+				if len(parts) > 1 {
+					filename := parts[len(parts)-1]
+					localPath := filepath.Join("uploads", filename)
+					_ = os.Remove(localPath)
+				}
+			}
+		}
+	}
+}
+
 func (h *LayananHandler) UpdateLayanan(c *gin.Context) {
 	uid := c.MustGet("user_uid").(string)
 	idStr := c.Param("id")
@@ -95,7 +124,6 @@ func (h *LayananHandler) UpdateLayanan(c *gin.Context) {
 		return
 	}
 
-	// Verify the bengkel belongs to this pengelola
 	bengkel, err := h.bengkelUsecase.GetBengkelByPengelola(c.Request.Context(), uid)
 	if err != nil || bengkel.ID != existing.BengkelID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You do not own this service's bengkel"})
@@ -108,10 +136,14 @@ func (h *LayananHandler) UpdateLayanan(c *gin.Context) {
 		return
 	}
 
+	// Clean up any removed photos from disk
+	h.cleanUpOrphanedImages(existing.FotoURL, req.FotoURL)
+
 	existing.Nama = req.Nama
 	existing.Deskripsi = req.Deskripsi
 	existing.EstimasiHarga = req.EstimasiHarga
 	existing.Status = req.Status
+	existing.FotoURL = req.FotoURL
 
 	err = h.layananUsecase.UpdateLayanan(c.Request.Context(), existing)
 	if err != nil {
@@ -137,12 +169,14 @@ func (h *LayananHandler) DeleteLayanan(c *gin.Context) {
 		return
 	}
 
-	// Verify the bengkel belongs to this pengelola
 	bengkel, err := h.bengkelUsecase.GetBengkelByPengelola(c.Request.Context(), uid)
 	if err != nil || bengkel.ID != existing.BengkelID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You do not own this service's bengkel"})
 		return
 	}
+
+	// Delete all photos from server disk when deleting service
+	h.cleanUpOrphanedImages(existing.FotoURL, "")
 
 	err = h.layananUsecase.DeleteLayanan(c.Request.Context(), uint(id))
 	if err != nil {
