@@ -3,6 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"be-ac-mobil-ku/domain"
 )
@@ -19,8 +22,16 @@ func NewBookingUsecase(bookingRepo domain.BookingRepository, bengkelRepo domain.
 	}
 }
 
+func generateOrderNumber() string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	dateStr := time.Now().Format("20060102")
+	randomNum := r.Intn(9000) + 1000 // 1000-9999
+	return fmt.Sprintf("ORD-TRX-%s-%d", dateStr, randomNum)
+}
+
 func (u *bookingUsecase) CreateBooking(ctx context.Context, b *domain.Booking) error {
 	b.Status = "menunggu"
+	b.OrderNumber = generateOrderNumber()
 	return u.bookingRepo.Create(ctx, b)
 }
 

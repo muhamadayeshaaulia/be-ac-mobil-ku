@@ -15,6 +15,7 @@ type Booking struct {
 	Catatan          string    `gorm:"type:text" json:"catatan"`
 	MetodePembayaran string    `gorm:"type:varchar(50)" json:"metode_pembayaran"`
 	NominalDP        float64   `gorm:"type:decimal(10,2)" json:"nominal_dp"`
+	OrderNumber      string    `gorm:"type:varchar(50);uniqueIndex" json:"order_number"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 
