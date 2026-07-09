@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type User struct {
 	UID       string  `gorm:"primaryKey" json:"uid"`
@@ -9,8 +12,9 @@ type User struct {
 	Role      string  `gorm:"not null" json:"role"` // "pelanggan" atau "pengelola_bengkel"
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
-	Telepon   string  `json:"telepon"`
-	FotoURL   string  `json:"foto_url"`
+	Telepon   string    `json:"telepon"`
+	FotoURL   string    `json:"foto_url"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type UserRepository interface {

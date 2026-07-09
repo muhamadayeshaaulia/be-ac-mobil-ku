@@ -94,7 +94,12 @@ func (h *UserHandler) RegisterOrUpdate(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Profile saved successfully", "data": user})
+	updatedUser, _ := h.userUsecase.GetProfile(c.Request.Context(), uid)
+	if updatedUser == nil {
+		updatedUser = user
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Profile saved successfully", "data": updatedUser})
 }
 
 func (h *UserHandler) UpdateLocation(c *gin.Context) {
