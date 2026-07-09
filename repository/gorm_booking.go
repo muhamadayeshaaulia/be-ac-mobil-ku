@@ -37,6 +37,8 @@ func (r *gormBookingRepository) GetByPelangganID(ctx context.Context, pelangganI
 	err := r.db.WithContext(ctx).
 		Preload("Bengkel").
 		Preload("Layanan").
+		Preload("Pelanggan").
+		Preload("Rating").
 		Where("pelanggan_id = ?", pelangganID).
 		Order("tanggal_booking desc").
 		Find(&list).Error

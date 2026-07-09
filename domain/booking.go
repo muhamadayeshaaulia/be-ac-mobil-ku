@@ -22,6 +22,7 @@ type Booking struct {
 	Bengkel  *Bengkel `gorm:"foreignKey:BengkelID" json:"bengkel,omitempty"`
 	Layanan  *Layanan `gorm:"foreignKey:LayananID" json:"layanan,omitempty"`
 	Pelanggan *User    `gorm:"foreignKey:PelangganID;references:UID" json:"pelanggan,omitempty"`
+	Rating   *Rating  `gorm:"foreignKey:BookingID" json:"rating,omitempty"`
 }
 
 type BookingRepository interface {

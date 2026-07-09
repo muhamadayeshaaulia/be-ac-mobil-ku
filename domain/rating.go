@@ -18,6 +18,7 @@ type Rating struct {
 	// Relation
 	Pelanggan *User    `gorm:"foreignKey:PelangganID;references:UID" json:"pelanggan,omitempty"`
 	Bengkel   *Bengkel `gorm:"foreignKey:BengkelID" json:"bengkel,omitempty"`
+	Booking   *Booking `gorm:"foreignKey:BookingID" json:"booking,omitempty"`
 }
 
 type RatingRepository interface {

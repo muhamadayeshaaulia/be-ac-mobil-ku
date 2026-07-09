@@ -41,9 +41,9 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	var err error
 	tBooking, err = time.Parse(time.RFC3339, req.TanggalBooking)
 	if err != nil {
-		tBooking, err = time.Parse("2006-01-02 15:04:00", req.TanggalBooking)
+		tBooking, err = time.ParseInLocation("2006-01-02 15:04:00", req.TanggalBooking, time.Local)
 		if err != nil {
-			tBooking, err = time.Parse("2006-01-02 15:04", req.TanggalBooking)
+			tBooking, err = time.ParseInLocation("2006-01-02 15:04", req.TanggalBooking, time.Local)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use RFC3339 or 'YYYY-MM-DD HH:MM'"})
 				return

@@ -23,6 +23,8 @@ func (r *gormRatingRepository) GetByBengkelID(ctx context.Context, bengkelID uin
 	var list []domain.Rating
 	err := r.db.WithContext(ctx).
 		Preload("Pelanggan").
+		Preload("Booking").
+		Preload("Booking.Layanan").
 		Where("bengkel_id = ?", bengkelID).
 		Order("created_at desc").
 		Find(&list).Error
