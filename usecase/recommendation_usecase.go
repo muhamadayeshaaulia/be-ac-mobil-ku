@@ -61,7 +61,10 @@ func (u *recommendationUsecase) GetRecommendations(ctx context.Context, userUID 
 	maxDistanceKm := 50.0 // Constraint parameter: 50 km radius limit
 
 	for _, b := range allBengkels {
-		dist := CalculateHaversine(currentUser.Latitude, currentUser.Longitude, b.Latitude, b.Longitude)
+		dist := 0.0
+		if currentUser.Latitude != 0.0 && currentUser.Longitude != 0.0 {
+			dist = CalculateHaversine(currentUser.Latitude, currentUser.Longitude, b.Latitude, b.Longitude)
+		}
 		b.Distance = dist
 
 		// Populate ratings
@@ -74,8 +77,11 @@ func (u *recommendationUsecase) GetRecommendations(ctx context.Context, userUID 
 			b.AvgRatingKeseluruhan = 0.0
 		}
 
-		// Constraint Filtering: only include bengkels within spatial range
-		if dist <= maxDistanceKm {
+		// Constraint Filtering: only include bengkels within spatial range,
+		// unless user location is not set (0.0, 0.0) in which case we include all
+		if currentUser.Latitude == 0.0 && currentUser.Longitude == 0.0 {
+			candidateBengkels = append(candidateBengkels, b)
+		} else if dist <= maxDistanceKm {
 			candidateBengkels = append(candidateBengkels, b)
 		}
 	}
