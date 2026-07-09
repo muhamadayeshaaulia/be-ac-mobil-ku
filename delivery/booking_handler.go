@@ -24,8 +24,10 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	type BookingRequest struct {
 		BengkelID      uint   `json:"bengkel_id" binding:"required"`
 		LayananID      uint   `json:"layanan_id" binding:"required"`
-		TanggalBooking string `json:"tanggal_booking" binding:"required"` // ISO string format or "2006-01-02 15:04"
-		Catatan        string `json:"catatan"`
+		TanggalBooking   string  `json:"tanggal_booking" binding:"required"` // ISO string format or "2006-01-02 15:04"
+		Catatan          string  `json:"catatan"`
+		MetodePembayaran string  `json:"metode_pembayaran"`
+		NominalDP        float64 `json:"nominal_dp"`
 	}
 
 	var req BookingRequest
@@ -50,11 +52,13 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	}
 
 	booking := &domain.Booking{
-		PelangganID:    uid,
-		BengkelID:      req.BengkelID,
-		LayananID:      req.LayananID,
-		TanggalBooking: tBooking,
-		Catatan:        req.Catatan,
+		PelangganID:      uid,
+		BengkelID:        req.BengkelID,
+		LayananID:        req.LayananID,
+		TanggalBooking:   tBooking,
+		Catatan:          req.Catatan,
+		MetodePembayaran: req.MetodePembayaran,
+		NominalDP:        req.NominalDP,
 	}
 
 	err = h.bookingUsecase.CreateBooking(c.Request.Context(), booking)

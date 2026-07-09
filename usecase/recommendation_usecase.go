@@ -12,17 +12,20 @@ type recommendationUsecase struct {
 	userRepo    domain.UserRepository
 	bengkelRepo domain.BengkelRepository
 	ratingRepo  domain.RatingRepository
+	layananRepo domain.LayananRepository
 }
 
 func NewRecommendationUsecase(
 	userRepo domain.UserRepository,
 	bengkelRepo domain.BengkelRepository,
 	ratingRepo domain.RatingRepository,
+	layananRepo domain.LayananRepository,
 ) domain.RecommendationUsecase {
 	return &recommendationUsecase{
 		userRepo:    userRepo,
 		bengkelRepo: bengkelRepo,
 		ratingRepo:  ratingRepo,
+		layananRepo: layananRepo,
 	}
 }
 
@@ -83,6 +86,21 @@ func (u *recommendationUsecase) GetRecommendations(ctx context.Context, userUID 
 			candidateBengkels = append(candidateBengkels, b)
 		} else if dist <= maxDistanceKm {
 			candidateBengkels = append(candidateBengkels, b)
+		}
+	}
+
+	// Fetch min harga for candidate bengkels
+	for i := range candidateBengkels {
+		b := &candidateBengkels[i]
+		layanans, err := u.layananRepo.GetByBengkelID(ctx, b.ID)
+		if err == nil && len(layanans) > 0 {
+			minHarga := layanans[0].EstimasiHarga
+			for _, l := range layanans {
+				if l.EstimasiHarga < minHarga {
+					minHarga = l.EstimasiHarga
+				}
+			}
+			b.MinHarga = minHarga
 		}
 	}
 

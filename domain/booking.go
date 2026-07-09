@@ -11,9 +11,11 @@ type Booking struct {
 	BengkelID      uint      `gorm:"index;not null" json:"bengkel_id"`
 	LayananID      uint      `gorm:"index;not null" json:"layanan_id"`
 	TanggalBooking time.Time `gorm:"not null" json:"tanggal_booking"`
-	Status         string    `gorm:"default:'menunggu'" json:"status"` // "menunggu", "dikonfirmasi", "selesai", "dibatalkan"
-	Catatan        string    `gorm:"type:text" json:"catatan"`
-	CreatedAt      time.Time `json:"created_at"`
+	Status           string    `gorm:"default:'menunggu'" json:"status"` // "menunggu", "dikonfirmasi", "selesai", "dibatalkan"
+	Catatan          string    `gorm:"type:text" json:"catatan"`
+	MetodePembayaran string    `gorm:"type:varchar(50)" json:"metode_pembayaran"`
+	NominalDP        float64   `gorm:"type:decimal(10,2)" json:"nominal_dp"`
+	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 
 	// Relations

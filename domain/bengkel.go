@@ -19,6 +19,7 @@ type Bengkel struct {
 	AvgRatingKualitas    float64 `gorm:"-" json:"avg_rating_kualitas,omitempty"`
 	AvgRatingHarga       float64 `gorm:"-" json:"avg_rating_harga,omitempty"`
 	AvgRatingKeseluruhan float64 `gorm:"-" json:"avg_rating_keseluruhan,omitempty"`
+	MinHarga             float64 `gorm:"-" json:"min_harga,omitempty"`
 }
 
 type BengkelRepository interface {

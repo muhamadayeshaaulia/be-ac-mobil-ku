@@ -49,7 +49,7 @@ func main() {
 	layananUC := usecase.NewLayananUsecase(layananRepo)
 	bookingUC := usecase.NewBookingUsecase(bookingRepo, bengkelRepo)
 	ratingUC := usecase.NewRatingUsecase(ratingRepo, bookingRepo)
-	recUC := usecase.NewRecommendationUsecase(userRepo, bengkelRepo, ratingRepo)
+	recUC := usecase.NewRecommendationUsecase(userRepo, bengkelRepo, ratingRepo, layananRepo)
 
 	// 6. Initialize Gin Web Framework
 	r := gin.Default()
