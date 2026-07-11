@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"be-ac-mobil-ku/domain"
 	"gorm.io/gorm"
@@ -61,4 +62,13 @@ func (r *gormBookingRepository) UpdateStatus(ctx context.Context, id uint, statu
 		Model(&domain.Booking{}).
 		Where("id = ?", id).
 		Update("status", status).Error
+}
+
+func (r *gormBookingRepository) CountActiveByBengkelAndTime(ctx context.Context, bengkelID uint, t time.Time) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&domain.Booking{}).
+		Where("bengkel_id = ? AND tanggal_booking = ? AND status IN ('menunggu', 'dikonfirmasi')", bengkelID, t).
+		Count(&count).Error
+	return count, err
 }

@@ -30,6 +30,14 @@ func generateOrderNumber() string {
 }
 
 func (u *bookingUsecase) CreateBooking(ctx context.Context, b *domain.Booking) error {
+	count, err := u.bookingRepo.CountActiveByBengkelAndTime(ctx, b.BengkelID, b.TanggalBooking)
+	if err != nil {
+		return err
+	}
+	if count >= 5 {
+		return errors.New("bengkel penuh pada jadwal tersebut (maksimal 5 pelanggan)")
+	}
+
 	b.Status = "menunggu"
 	b.OrderNumber = generateOrderNumber()
 	return u.bookingRepo.Create(ctx, b)

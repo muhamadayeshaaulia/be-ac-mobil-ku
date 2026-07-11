@@ -32,6 +32,7 @@ type BookingRepository interface {
 	GetByPelangganID(ctx context.Context, pelangganID string) ([]Booking, error)
 	GetByBengkelID(ctx context.Context, bengkelID uint) ([]Booking, error)
 	UpdateStatus(ctx context.Context, id uint, status string) error
+	CountActiveByBengkelAndTime(ctx context.Context, bengkelID uint, t time.Time) (int64, error)
 }
 
 type BookingUsecase interface {
