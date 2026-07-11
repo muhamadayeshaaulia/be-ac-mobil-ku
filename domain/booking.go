@@ -33,6 +33,7 @@ type BookingRepository interface {
 	GetByBengkelID(ctx context.Context, bengkelID uint) ([]Booking, error)
 	UpdateStatus(ctx context.Context, id uint, status string) error
 	CountActiveByBengkelAndTime(ctx context.Context, bengkelID uint, t time.Time) (int64, error)
+	GetActiveBookingsByBengkelAndDate(ctx context.Context, bengkelID uint, start time.Time, end time.Time) ([]Booking, error)
 }
 
 type BookingUsecase interface {
@@ -41,4 +42,5 @@ type BookingUsecase interface {
 	GetBookingHistory(ctx context.Context, pelangganID string) ([]Booking, error)
 	GetBengkelQueue(ctx context.Context, pengelolaID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, pengelolaID string, bookingID uint, status string) error
+	GetFullTimeSlots(ctx context.Context, bengkelID uint, dateStr string) ([]string, error)
 }

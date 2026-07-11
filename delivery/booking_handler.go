@@ -121,3 +121,30 @@ func (h *BookingHandler) UpdateStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Booking status updated successfully"})
 }
+
+func (h *BookingHandler) GetFullTimeSlots(c *gin.Context) {
+	bengkelIDStr := c.Query("bengkel_id")
+	dateStr := c.Query("tanggal")
+
+	if bengkelIDStr == "" || dateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bengkel_id and tanggal query params are required"})
+		return
+	}
+
+	bengkelID, err := strconv.ParseUint(bengkelIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid bengkel_id"})
+		return
+	}
+
+	fullSlots, err := h.bookingUsecase.GetFullTimeSlots(c.Request.Context(), uint(bengkelID), dateStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   fullSlots,
+	})
+}

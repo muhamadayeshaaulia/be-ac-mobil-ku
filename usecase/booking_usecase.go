@@ -76,3 +76,32 @@ func (u *bookingUsecase) UpdateBookingStatus(ctx context.Context, pengelolaID st
 
 	return u.bookingRepo.UpdateStatus(ctx, bookingID, status)
 }
+
+func (u *bookingUsecase) GetFullTimeSlots(ctx context.Context, bengkelID uint, dateStr string) ([]string, error) {
+	// dateStr is expected to be "YYYY-MM-DD"
+	loc, _ := time.LoadLocation("Local") // or time.Now().Location()
+	start, err := time.ParseInLocation("2006-01-02", dateStr, loc)
+	if err != nil {
+		return nil, err
+	}
+	end := start.Add(24 * time.Hour)
+
+	bookings, err := u.bookingRepo.GetActiveBookingsByBengkelAndDate(ctx, bengkelID, start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make(map[string]int)
+	for _, b := range bookings {
+		timeStr := b.TanggalBooking.Format("15:04")
+		counts[timeStr]++
+	}
+
+	var fullSlots []string
+	for t, c := range counts {
+		if c >= 5 {
+			fullSlots = append(fullSlots, t)
+		}
+	}
+	return fullSlots, nil
+}

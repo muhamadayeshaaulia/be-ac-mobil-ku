@@ -68,6 +68,7 @@ func SetupRoutes(cfg RouteConfig) {
 		api.POST("/booking", bookingHandler.CreateBooking)
 		api.GET("/booking/history", bookingHandler.GetHistory)
 		api.GET("/booking/queue", bookingHandler.GetQueue)
+		api.GET("/booking/slots", bookingHandler.GetFullTimeSlots)
 		api.PUT("/booking/:id/status", bookingHandler.UpdateStatus)
 
 		// --- RATING & REVIEW ROUTES ---

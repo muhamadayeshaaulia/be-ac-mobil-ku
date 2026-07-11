@@ -72,3 +72,11 @@ func (r *gormBookingRepository) CountActiveByBengkelAndTime(ctx context.Context,
 		Count(&count).Error
 	return count, err
 }
+
+func (r *gormBookingRepository) GetActiveBookingsByBengkelAndDate(ctx context.Context, bengkelID uint, start time.Time, end time.Time) ([]domain.Booking, error) {
+	var list []domain.Booking
+	err := r.db.WithContext(ctx).
+		Where("bengkel_id = ? AND status IN ('menunggu', 'dikonfirmasi') AND tanggal_booking >= ? AND tanggal_booking < ?", bengkelID, start, end).
+		Find(&list).Error
+	return list, err
+}
